@@ -15,6 +15,7 @@ export default class LookupInput extends LightningElement {
     connectedCallback() {
         if (this.value && this.label) {
             this.selection = { value: this.value, label: this.label };
+            this.searchTerm = this.label; // display selected label inline
         }
     }
 
@@ -67,6 +68,7 @@ export default class LookupInput extends LightningElement {
         const label = event.currentTarget.dataset.label;
         this.selection = { value, label };
         this.value = value;
+    this.searchTerm = label; // keep label visible in input
         this.dispatchEvent(new CustomEvent('select', { detail: { value, label } }));
         this.open = false;
         this.results = [];
@@ -75,6 +77,7 @@ export default class LookupInput extends LightningElement {
     clearSelection() {
         this.selection = null;
         this.value = null;
+    this.searchTerm = '';
         this.dispatchEvent(new CustomEvent('select', { detail: { value: null, label: null } }));
     }
 }

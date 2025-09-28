@@ -1,3 +1,9 @@
 .table-container { max-height: 520px; overflow:auto; }
 .toolbar { display:flex; align-items:flex-end; }
 .lookup lightning-input { width:100%; }
+
+/* Mild alignment & sizing adjustments without overriding SLDS classes */
+.opp-edit-table td.cell { 
+	vertical-align: middle; 
+}
+

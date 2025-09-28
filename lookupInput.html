@@ -38,16 +38,7 @@
                     </div>
                 </div>
             </div>
-            <template if:true={hasSelection}>
-                <div class="slds-pill_container slds-m-top_x-small">
-                    <span class="slds-pill" role="option" tabindex="0" aria-selected="true">
-                        <span class="slds-pill__label">{selection.label}</span>
-                        <button class="slds-button slds-button_icon slds-pill__remove" title="Remove" onclick={clearSelection}>
-                            <lightning-icon icon-name="utility:close" alternative-text="Remove" size="x-small"></lightning-icon>
-                        </button>
-                    </span>
-                </div>
-            </template>
+            <!-- Pill removed: selection now shown inline in input via searchTerm -->
         </div>
     </div>
 </template>

@@ -1,12 +1,12 @@
 <template>
     <lightning-card title="Opportunity Editable Table" icon-name="standard:opportunity">
         <div class="slds-p-horizontal_small slds-p-vertical_x-small toolbar">
-            <lightning-input type="search" label="Search" value={searchKey} onchange={handleSearch} class="slds-m-right_small"></lightning-input>
             <lightning-button label="Refresh" onclick={refresh} class="slds-m-right_small"></lightning-button>
+            <lightning-button class="slds-m-right_small" label="Cancel" onclick={cancelAll} disabled={saveDisabled}></lightning-button>
             <lightning-button variant="brand" label="Save All" onclick={saveAll} disabled={saveDisabled}></lightning-button>
         </div>
         <div class="table-container">
-            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout opp-edit-table">
                 <thead>
                     <tr class="slds-line-height_reset">
                         <th scope="col"><div class="slds-truncate" title="Name">Name</div></th>
@@ -20,20 +20,79 @@
                     <template if:true={rows.length}>
                         <template for:each={rows} for:item="row">
                             <tr key={row.Id} class="slds-hint-parent">
-                                <td data-label="Name">
-                                    <lightning-input type="text" value={row.editable.Name} data-id={row.Id} data-field="Name" onchange={handleFieldChange}></lightning-input>
+                                <td data-label="Name" class="cell">
+                                    <template if:false={row.editingName}>
+                                        <div class="slds-grid slds-gutters_small slds-wrap slds-media_center">
+                                            <div class="slds-col slds-truncate" title={row.editable.Name}>{row.editable.Name}</div>
+                                            <div class="slds-col slds-no-flex">
+                                                <lightning-button-icon icon-name="utility:edit" alternative-text="Edit" variant="bare" data-id={row.Id} data-field="Name" onclick={startEdit}></lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template if:true={row.editingName}>
+                                        <div class="slds-grid slds-gutters_x-small slds-media_center">
+                                            <lightning-input class="slds-size_full" type="text" label="Name" variant="label-hidden" value={row.editable.Name} data-id={row.Id} data-field="Name" onchange={handleFieldChange} onblur={finishEdit}></lightning-input>
+                                        </div>
+                                    </template>
                                 </td>
-                                <td data-label="Account">
-                                    <c-lookup-input data-id={row.Id} data-field="AccountId" value={row.editable.AccountId} label={row.editable.AccountName} onselect={handleAccountSelect}></c-lookup-input>
+                                <td data-label="Account" class="cell">
+                                    <template if:false={row.editingAccount}>
+                                        <div class="slds-grid slds-gutters_small slds-wrap slds-media_center">
+                                            <div class="slds-col slds-truncate" title={row.editable.AccountName}>{row.editable.AccountName}</div>
+                                            <div class="slds-col slds-no-flex">
+                                                <lightning-button-icon icon-name="utility:edit" alternative-text="Edit" variant="bare" data-id={row.Id} data-field="Account" onclick={startEdit}></lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template if:true={row.editingAccount}>
+                                        <div class="slds-grid slds-gutters_x-small slds-media_center">
+                                            <c-lookup-input class="slds-size_full" data-id={row.Id} data-field="AccountId" value={row.editable.AccountId} label={row.editable.AccountName} onselect={handleAccountSelect} onblur={finishEdit}></c-lookup-input>
+                                        </div>
+                                    </template>
                                 </td>
-                                <td data-label="Stage">
-                                    <lightning-combobox value={row.editable.StageName} data-id={row.Id} data-field="StageName" options={stageOptions} placeholder="Select Stage" onchange={handleFieldChange}></lightning-combobox>
+                                <td data-label="Stage" class="cell">
+                                    <template if:false={row.editingStage}>
+                                        <div class="slds-grid slds-gutters_small slds-wrap slds-media_center">
+                                            <div class="slds-col slds-truncate" title={row.editable.StageName}>{row.editable.StageName}</div>
+                                            <div class="slds-col slds-no-flex">
+                                                <lightning-button-icon icon-name="utility:edit" alternative-text="Edit" variant="bare" data-id={row.Id} data-field="Stage" onclick={startEdit}></lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template if:true={row.editingStage}>
+                                        <div class="slds-grid slds-gutters_x-small slds-media_center">
+                                            <lightning-combobox class="slds-size_full" value={row.editable.StageName} data-id={row.Id} data-field="StageName" options={stageOptions} placeholder="Select Stage" onchange={handleFieldChange} label="Stage" variant="label-hidden" onblur={finishEdit}></lightning-combobox>
+                                        </div>
+                                    </template>
                                 </td>
-                                <td data-label="Close Date">
-                                    <lightning-input type="date" value={row.editable.CloseDate} data-id={row.Id} data-field="CloseDate" onchange={handleFieldChange}></lightning-input>
+                                <td data-label="Close Date" class="cell">
+                                    <template if:false={row.editingCloseDate}>
+                                        <div class="slds-grid slds-gutters_small slds-wrap slds-media_center">
+                                            <div class="slds-col slds-truncate" title={row.editable.CloseDate}>{row.editable.CloseDate}</div>
+                                            <div class="slds-col slds-no-flex">
+                                                <lightning-button-icon icon-name="utility:edit" alternative-text="Edit" variant="bare" data-id={row.Id} data-field="CloseDate" onclick={startEdit}></lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template if:true={row.editingCloseDate}>
+                                        <div class="slds-grid slds-gutters_x-small slds-media_center">
+                                            <lightning-input class="slds-size_full" type="date" label="Close Date" variant="label-hidden" value={row.editable.CloseDate} data-id={row.Id} data-field="CloseDate" onchange={handleFieldChange} onblur={finishEdit}></lightning-input>
+                                        </div>
+                                    </template>
                                 </td>
-                                <td data-label="Private">
-                                    <lightning-input type="checkbox" checked={row.editable.IsPrivate} data-id={row.Id} data-field="IsPrivate" onchange={handleCheckboxChange}></lightning-input>
+                                <td data-label="Private" class="cell slds-text-align_center">
+                                    <template if:false={row.editingIsPrivate}>
+                                        <div class="slds-grid slds-gutters_small slds-media_center slds-grid_align-center">
+                                            <lightning-icon icon-name={row.editable.IsPrivateIcon} alternative-text="Private" size="x-small" class="slds-m-right_x-small" if:true={row.editable.IsPrivate}></lightning-icon>
+                                            <span>{row.editable.IsPrivate}</span>
+                                            <lightning-button-icon icon-name="utility:edit" alternative-text="Edit" variant="bare" data-id={row.Id} data-field="IsPrivate" onclick={startEdit} class="slds-m-left_x-small"></lightning-button-icon>
+                                        </div>
+                                    </template>
+                                    <template if:true={row.editingIsPrivate}>
+                                        <div class="slds-grid slds-gutters_x-small slds-media_center slds-grid_align-center">
+                                            <lightning-input class="slds-p-around_none" type="checkbox" label="Private" variant="label-hidden" checked={row.editable.IsPrivate} data-id={row.Id} data-field="IsPrivate" onchange={handleCheckboxChange} onblur={finishEdit}></lightning-input>
+                                        </div>
+                                    </template>
                                 </td>
                             </tr>
                         </template>

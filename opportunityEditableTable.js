@@ -7,7 +7,6 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 export default class OpportunityEditableTable extends LightningElement {
     @track rows = [];
     originalMap = new Map();
-    searchKey = '';
     stageOptions = [];
 
     connectedCallback() {
@@ -22,9 +21,15 @@ export default class OpportunityEditableTable extends LightningElement {
             .then(data => {
                 this.rows = data.map(r => ({
                     ...r,
-                    editable: { ...r }
+                    editable: { ...r },
+                    editingName: false,
+                    editingAccount: false,
+                    editingStage: false,
+                    editingCloseDate: false,
+                    editingIsPrivate: false
                 }));
-                this.originalMap = new Map(this.rows.map(r => [r.Id, { ...r }]));
+                // Store a true immutable snapshot of original editable values (not referencing same object)
+                this.originalMap = new Map(this.rows.map(r => [r.Id, { ...r.editable }]));
             })
             .catch(e => this.toast('Error', this.reduceErrors(e).join(','), 'error'));
     }
@@ -70,6 +75,7 @@ export default class OpportunityEditableTable extends LightningElement {
         const field = host.dataset.field;
         this.updateRow(id, field, wrapper.value);
         this.updateRow(id, 'AccountName', wrapper.label);
+    this.finishSpecificEdit(id, 'Account');
     }
 
     updateRow(id, field, value) {
@@ -81,25 +87,56 @@ export default class OpportunityEditableTable extends LightningElement {
         });
     }
 
-    handleSearch(event) {
-        this.searchKey = event.target.value.toLowerCase();
-        if (!this.searchKey) {
-            this.rows = this.rows.map(r => ({ ...r, hidden: false }));
-        } else {
-            this.rows = this.rows.map(r => ({
-                ...r,
-                hidden: !(
-                    (r.editable.Name && r.editable.Name.toLowerCase().includes(this.searchKey)) ||
-                    (r.editable.AccountName && r.editable.AccountName.toLowerCase().includes(this.searchKey)) ||
-                    (r.editable.StageName && r.editable.StageName.toLowerCase().includes(this.searchKey))
-                )
-            }));
+    startEdit(event) {
+        const id = event.currentTarget.dataset.id;
+        const field = event.currentTarget.dataset.field;
+        const editFlag = this.flagName(field);
+        this.rows = this.rows.map(r => {
+            if (r.Id === id) {
+                r[editFlag] = true;
+            }
+            return r;
+        });
+    }
+
+    finishEdit(event) {
+        const id = event.target.dataset.id;
+        const field = event.target.dataset.field;
+        const editFlag = this.flagName(field);
+        // small delay to allow checkbox / lookup click interactions
+        setTimeout(() => {
+            this.rows = this.rows.map(r => {
+                if (r.Id === id) {
+                    r[editFlag] = false;
+                }
+                return r;
+            });
+        }, 100);
+    }
+
+    finishSpecificEdit(id, logicalField) {
+        const editFlag = this.flagName(logicalField);
+        this.rows = this.rows.map(r => {
+            if (r.Id === id) {
+                r[editFlag] = false;
+            }
+            return r;
+        });
+    }
+
+    flagName(field) {
+        switch(field) {
+            case 'Name': return 'editingName';
+            case 'Account':
+            case 'AccountId': return 'editingAccount';
+            case 'Stage':
+            case 'StageName': return 'editingStage';
+            case 'CloseDate': return 'editingCloseDate';
+            case 'IsPrivate': return 'editingIsPrivate';
+            default: return 'editingGeneric';
         }
     }
 
-    get filteredRows() {
-        return this.rows.filter(r => !r.hidden);
-    }
 
     saveAll() {
         const updates = this.changedRows().map(r => r.editable);
@@ -114,11 +151,26 @@ export default class OpportunityEditableTable extends LightningElement {
                     }
                     return row;
                 });
-                this.originalMap = new Map(this.rows.map(r => [r.Id, { ...r }]));
+                // Reset snapshot after successful save
+                this.originalMap = new Map(this.rows.map(r => [r.Id, { ...r.editable }]));
                 this.toast('Success', 'Changes saved', 'success');
             })
             .catch(e => this.toast('Error saving', this.reduceErrors(e).join(','), 'error'));
     }
+
+        cancelAll() {
+            if (this.changedRows().length === 0) return;
+            // Revert editable values to snapshot
+            this.rows = this.rows.map(r => {
+                const orig = this.originalMap.get(r.Id);
+                if (orig) {
+                    const reverted = { ...r, editable: { ...orig }, editingName:false, editingAccount:false, editingStage:false, editingCloseDate:false, editingIsPrivate:false };
+                    return reverted;
+                }
+                return r;
+            });
+            this.toast('Info', 'Changes reverted', 'info');
+        }
 
     refresh() {
         this.loadData();
