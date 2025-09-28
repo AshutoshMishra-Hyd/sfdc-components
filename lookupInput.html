@@ -1,0 +1,53 @@
+<template>
+    <div class="lookup" onfocusout={handleBlur}>
+        <div class="slds-form-element slds-lookup">
+             <div class="slds-form-element__control">
+             <div class={comboboxClass}
+                 aria-expanded={open} aria-haspopup="listbox" role="combobox">
+                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <lightning-input type="search" variant="label-hidden" placeholder={placeholder}
+                                         value={searchTerm} onchange={handleChange} onfocus={handleFocus}>
+                        </lightning-input>
+                        <button if:true={hasSelection} class="slds-button slds-button_icon slds-input__icon slds-input__icon_right" onclick={clearSelection} title="Clear Selection">
+                            <lightning-icon icon-name="utility:close" alternative-text="Clear" size="x-small"></lightning-icon>
+                        </button>
+                    </div>
+                    <div if:true={open} class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox">
+                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                            <template if:true={results.length}>
+                                <template for:each={results} for:item="item">
+                                    <li key={item.value} role="presentation" class="slds-listbox__item" data-value={item.value} data-label={item.label} onclick={handleSelect}>
+                                        <div class="slds-media slds-listbox__option slds-listbox__option_entity" role="option">
+                                            <span class="slds-media__body">
+                                                <span class="slds-truncate" title={item.label}>{item.label}</span>
+                                            </span>
+                                        </div>
+                                    </li>
+                                </template>
+                            </template>
+                            <template if:false={results.length}>
+                                <li class="slds-listbox__item" role="presentation">
+                                    <div class="slds-media slds-listbox__option" role="option">
+                                        <span class="slds-media__body">
+                                            <span class="slds-truncate" title="No Results">No Results</span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <template if:true={hasSelection}>
+                <div class="slds-pill_container slds-m-top_x-small">
+                    <span class="slds-pill" role="option" tabindex="0" aria-selected="true">
+                        <span class="slds-pill__label">{selection.label}</span>
+                        <button class="slds-button slds-button_icon slds-pill__remove" title="Remove" onclick={clearSelection}>
+                            <lightning-icon icon-name="utility:close" alternative-text="Remove" size="x-small"></lightning-icon>
+                        </button>
+                    </span>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

@@ -1,0 +1,48 @@
+<template>
+    <lightning-card title="Opportunity Editable Table" icon-name="standard:opportunity">
+        <div class="slds-p-horizontal_small slds-p-vertical_x-small toolbar">
+            <lightning-input type="search" label="Search" value={searchKey} onchange={handleSearch} class="slds-m-right_small"></lightning-input>
+            <lightning-button label="Refresh" onclick={refresh} class="slds-m-right_small"></lightning-button>
+            <lightning-button variant="brand" label="Save All" onclick={saveAll} disabled={saveDisabled}></lightning-button>
+        </div>
+        <div class="table-container">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th scope="col"><div class="slds-truncate" title="Name">Name</div></th>
+                        <th scope="col"><div class="slds-truncate" title="Account">Account</div></th>
+                        <th scope="col"><div class="slds-truncate" title="Stage">Stage</div></th>
+                        <th scope="col"><div class="slds-truncate" title="Close Date">Close Date</div></th>
+                        <th scope="col"><div class="slds-truncate" title="Private">Private</div></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template if:true={rows.length}>
+                        <template for:each={rows} for:item="row">
+                            <tr key={row.Id} class="slds-hint-parent">
+                                <td data-label="Name">
+                                    <lightning-input type="text" value={row.editable.Name} data-id={row.Id} data-field="Name" onchange={handleFieldChange}></lightning-input>
+                                </td>
+                                <td data-label="Account">
+                                    <c-lookup-input data-id={row.Id} data-field="AccountId" value={row.editable.AccountId} label={row.editable.AccountName} onselect={handleAccountSelect}></c-lookup-input>
+                                </td>
+                                <td data-label="Stage">
+                                    <lightning-combobox value={row.editable.StageName} data-id={row.Id} data-field="StageName" options={stageOptions} placeholder="Select Stage" onchange={handleFieldChange}></lightning-combobox>
+                                </td>
+                                <td data-label="Close Date">
+                                    <lightning-input type="date" value={row.editable.CloseDate} data-id={row.Id} data-field="CloseDate" onchange={handleFieldChange}></lightning-input>
+                                </td>
+                                <td data-label="Private">
+                                    <lightning-input type="checkbox" checked={row.editable.IsPrivate} data-id={row.Id} data-field="IsPrivate" onchange={handleCheckboxChange}></lightning-input>
+                                </td>
+                            </tr>
+                        </template>
+                    </template>
+                    <template if:false={rows.length}>
+                        <tr><td colspan="5" class="slds-text-align_center slds-p-vertical_medium">No records</td></tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </lightning-card>
+</template>
